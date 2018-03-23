@@ -1,0 +1,2 @@
+If small port mode pressing days toggles year between years/weeks
+If not small port mode pressing days toggles day between days/weeks

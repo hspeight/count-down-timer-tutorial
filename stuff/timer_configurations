@@ -1,0 +1,9 @@
+years, weeks max(52), days (max 7), hours max(24), minutes (max 60), seconds (max 60)
+
+If only one timer is on display there is no max
+
+Portrait mode:
+    secs, mins, hours, days in total
+
+Landscape mode:
+    secs, mins, hours, days, years
