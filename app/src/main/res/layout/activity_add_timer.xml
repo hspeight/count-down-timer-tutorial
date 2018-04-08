@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <fragment android:id="@+id/allland"
+    <fragment android:id="@+id/add_timer_port"
         android:layout_height="fill_parent"
-        android:name="com.androidtutorialshub.countdowntimer.Fragments.AllLand"
+        android:name="com.androidtutorialshub.countdowntimer.Fragments.AddTimerPort"
         android:layout_width="match_parent" />
 
 </android.support.constraint.ConstraintLayout>

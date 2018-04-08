@@ -1,0 +1,14 @@
+adb -s emulator-5554 shell
+
+run-as com.androidtutorialshub.countdowntimer
+sqlite3 databases/timer.db "select * from timer"
+
+sqlite3 timer.db "select * from timer"
+
+sqlite3 com.androidtutorialshub.countdowntimer/databases/timer.db "select * from timer"
+
+
+sqlite3 ".open timer.db"
+.tables
+
+
