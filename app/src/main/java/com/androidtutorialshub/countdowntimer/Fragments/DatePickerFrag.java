@@ -3,15 +3,11 @@ package com.androidtutorialshub.countdowntimer.Fragments;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.DatePicker;
 
@@ -27,6 +23,7 @@ public class DatePickerFrag extends DialogFragment
     //OnDataPass dataPasser;
 
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 

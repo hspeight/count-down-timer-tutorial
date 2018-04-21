@@ -7,14 +7,25 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/txtfilename"
+        android:id="@+id/txtStringDate"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="92dp"
-        android:layout_marginStart="92dp"
+        android:layout_height="25dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginRight="32dp"
         android:layout_marginTop="8dp"
         android:text="filename"
-        fresco:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/timerOptions"
+        fresco:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtfilename"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:text="filename"
+        app:layout_constraintEnd_toStartOf="@+id/txtStringDate"
         fresco:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -39,7 +50,7 @@
         android:indeterminate="false"
         android:max="100"
         android:progress="100"
-        android:progressDrawable="@drawable/drawable_circle_yellow"
+        android:progressDrawable="@drawable/drawable_circle_white"
         android:textAlignment="center"
         app:layout_constraintEnd_toStartOf="@+id/progressBarCircleHrs"
         app:layout_constraintHorizontal_bias="0.5"
@@ -196,12 +207,12 @@
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginStart="32dp"
+        android:ellipsize="end"
         android:gravity="center_vertical|center_horizontal"
+        android:maxLines="3"
+        android:singleLine="false"
         android:text="This is the affirmation"
         android:textSize="16sp"
-        android:ellipsize="end"
-        android:singleLine="false"
-        android:maxLines="3"
 
         app:layout_constraintBottom_toTopOf="@+id/progressBarCircleHrs"
         app:layout_constraintEnd_toEndOf="parent"
@@ -211,16 +222,18 @@
         android:id="@+id/timer_image"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="32dp"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
         android:layout_marginStart="32dp"
         app:layout_constraintBottom_toTopOf="@+id/textMessage"
-        app:layout_constraintDimensionRatio="w,1:1"
+        app:layout_constraintDimensionRatio="h,1:1"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        fresco:placeholderImage="@mipmap/add_btn" />
+        fresco:placeholderImage="@mipmap/add_btn"
+        fresco:roundedCornerRadius="10dp" />
 
     <TextView
         android:id="@+id/textTitle"
@@ -231,7 +244,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="8dp"
         android:gravity="center_horizontal"
         android:singleLine="true"
         android:text="TextView"
@@ -239,7 +252,7 @@
         app:layout_constraintBottom_toTopOf="@+id/timer_image"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/txtfilename" />
 
     <TextView
         android:id="@+id/txtRowId"
@@ -252,18 +265,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Layout to contain contents of main body of screen (drawer will slide over this) -->
-    <FrameLayout
-        android:id="@+id/content_frame"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <!-- Container for contents of drawer - use NavigationView to make configuration easier -->
-    <android.support.design.widget.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true" />
+    <TextView
+        android:id="@+id/timerOptions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:gravity="fill_vertical|center_horizontal"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:text="&#8942;"
+        android:textAppearance="?android:textAppearanceLarge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

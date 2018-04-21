@@ -2,15 +2,11 @@ package com.androidtutorialshub.countdowntimer.Data;
 
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.res.AssetManager;
-import android.os.Environment;
 import android.util.Log;
 
 import com.androidtutorialshub.countdowntimer.Activities.R;
 import com.androidtutorialshub.countdowntimer.Model.Timer;
 
-import java.io.File;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
@@ -59,7 +55,7 @@ public class Samples extends ContextWrapper {
                 "A count down to New Year's Eve",
                 getString(R.string.message_001),
                 getEpoch("01/01/" + (year + 1) + " 00:00:00"),
-                "celebration-3042641__340.jpg",
+                "smp_celebration-3042641__340.jpg",
                 "I",
                 "S");
 
@@ -67,7 +63,7 @@ public class Samples extends ContextWrapper {
                 "An example of an event showing years & days",
                 getString(R.string.message_002),
                 getEpoch("11/07/2012 09:00:00"),
-                "cigarettes-2842108__340.jpg",
+                "smp_cigarettes-2842108__340.jpg",
                 "I",
                 "S");
 
@@ -78,7 +74,7 @@ public class Samples extends ContextWrapper {
                 "Can't wait, counting the seconds :-)",
                 getString(R.string.message_003),
                 epoch,
-                "sand-3289125__340.jpg", // the image
+                "smp_sand-3289125__340.jpg", // the image
                 "I",
                 "S");
 
@@ -86,7 +82,7 @@ public class Samples extends ContextWrapper {
                 "This is my age in days",
                 getString(R.string.message_004),
                 epoch,
-                "lamborghini-1819244__340.jpg",
+                "smp_lamborghini-1819244__340.jpg",
                 "I",
                 "S");
 
@@ -96,11 +92,12 @@ public class Samples extends ContextWrapper {
                 "This will be the best day ever",
                 getString(R.string.message_005),
                 epoch,
-                "beautiful-girl-2003647__340.jpg", // the image
+                "smp_beautiful-girl-2003647__340.jpg", // the image
                 "I",
                 "S");
 
         add_samples_to_db();
+
     }
     private int getEpoch(String dateIn) {
 

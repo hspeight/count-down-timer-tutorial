@@ -29,7 +29,8 @@ public class ShowTimerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fresco.initialize(this);
+        if (! Fresco.hasBeenInitialized())
+            Fresco.initialize(this);
         setContentView(R.layout.activity_show_timer);
         db = new DatabaseHandler(this, null, null, 1);
 
@@ -52,7 +53,7 @@ public class ShowTimerActivity extends AppCompatActivity {
 
             //Uri imageUri = Uri.parse("content://com.android.providers.media.documents/document/image%3A25");
             //Log.d(DEBUG_TAG,imageUri.toString());
-            String imageBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm_images/";
+            String imageBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407/images/";
             String imagePath = imageBasePath + timer.getImage();
             Log.d(DEBUG_TAG, "imagepath=" + imagePath);
             Uri imageUri= Uri.fromFile(new File(imagePath));// For files on device

@@ -13,12 +13,12 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="64dp"
         android:layout_marginStart="64dp"
-        android:layout_marginTop="152dp"
         android:text="Add a new timer"
         android:textSize="24sp"
         android:theme="@style/PrimaryButton"
+        app:layout_constraintBottom_toTopOf="@+id/load_samples"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/my_toolbar" />
 
@@ -28,20 +28,19 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="64dp"
         android:layout_marginStart="64dp"
-        android:layout_marginTop="40dp"
         android:text="Load sample timers"
         android:textSize="24sp"
         android:theme="@style/PrimaryButton"
+        app:layout_constraintBottom_toTopOf="@+id/showatimer"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/add_new_timer" />
 
     <Button
         android:id="@+id/showatimer"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="192dp"
+        android:layout_height="51dp"
         android:layout_marginEnd="64dp"
         android:layout_marginStart="64dp"
         android:text="Show a timer"
@@ -49,8 +48,9 @@
         android:theme="@style/PrimaryButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/load_samples" />
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_toolbar"

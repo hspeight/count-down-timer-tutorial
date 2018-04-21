@@ -1,14 +1,18 @@
 <resources>
     <string name="app_name">Count For Me</string>
     <string name="hint_minute">Minute</string>
-    <string name="message_minutes">Please Enter Minutes...</string>
+    <string name="message_minutes">Please Enter Minutes…</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="hint_email">Email</string>
     <string name="info_title">No Timers Created</string>
     <string name="info_message">Come on.. make a timer please</string>
 
-    <string name="agree">OK</string>
-    <string name="disagree">Cancel</string>
+    <string name="agree">Agree</string>
+    <string name="disagree">Disagree</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="restore">Restore</string>
+    <string name="delete">Delete</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="rationale_external_storage">%1$s needs to store application data.</string>
@@ -18,5 +22,32 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
     <string name="drawer_item_settings">Settings</string>
+    <string name="drawer_item_backup">Backup *</string>
+    <string name="drawer_item_restore">Restore *</string>
+    <string name="drawer_about_text">About</string>
+    <string name="drawer_pro_msg_1">* = Pro version only</string>
+    <string name="drawer_pro_msg_2">Upgrade to Pro</string>
+    <string name="drawer_samples_text">Samples</string>
+    <string name="drawer_help_text">Help</string>
+
+    <string name="backup_dialog_title">Backup Your Timers</string>
+    <string name="backup_dialog_input">Name:</string>
+    <string name="backup_notes">Notes</string>
+    <string name="backup_menu_option_delete">Delete</string>
+    <string name="backup_menu_option_restore">Restore</string>
+    <string name="timer_menu_option_delete">Delete</string>
+    <string name="timer_menu_option_edit">Edit</string>
+    <string name="delete_backup_title">Delete backup?</string>
+    <string name="delete_backup_message">%1$s \n\nThis backup containing %2$d timers will be deleted permanently.</string>
+    <string name="drawer_new_timer_text">New Timer</string>
+
+    <string name="new_timer_time">%1$d:%2$d</string>
+    <string name="delete_timer_title">Delete Timer?</string>
+    <string name="delete_timer_message">This timer will be deleted permanently</string>
+
+    <string-array name="backup_choices">
+        <item>Include Samples</item>
+        <item>Some other option</item>
+    </string-array>
 
 </resources>

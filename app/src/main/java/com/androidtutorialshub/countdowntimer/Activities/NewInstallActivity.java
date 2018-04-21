@@ -2,6 +2,7 @@ package com.androidtutorialshub.countdowntimer.Activities;
 
 import android.Manifest;
 import android.content.Intent;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -11,22 +12,16 @@ import android.widget.Toast;
 
 import com.androidtutorialshub.countdowntimer.Data.DatabaseHandler;
 import com.androidtutorialshub.countdowntimer.Data.Samples;
+import com.androidtutorialshub.countdowntimer.Utils.CopyAssets;
 
+import java.io.File;
 import java.text.ParseException;
+import java.util.List;
 
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class NewInstallActivity extends AppCompatActivity {
+public class NewInstallActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks {
 
-    //private ProgressBar mProgress;
-    //private ImageView mTimerImage;
-    //private EditText mTimerTitle;
-    //private EditText mTimerDesc;
-    //private DatabaseReference mTimerDatabase;
-    //private FirebaseAuth mAuth;
-    //private FirebaseUser mUser;
-    //private Uri mImageUri;
-    //private static final int GALLERY_CODE = 1;
     Button btnNewTimer;
     Button btnLoadSamples;
     Button btnShowTimer;
@@ -82,22 +77,14 @@ public class NewInstallActivity extends AppCompatActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-        //mProgress = new ProgressBar(this);
-        //mAuth = FirebaseAuth.getInstance();
-        // mUser = mAuth.getCurentUser();
-        //mTimerDatabase = Firebase.getInstance().getReference().Child("TimerDB");
-        //mTimerImage = findViewById(R.id.timer_image);
-        //mTimerTitle = findViewById(R.id.?);
-        //mTimerDesc = findViewById(R.id.?);
 /*
-        mTimerImage.setOnClickListener(v -> {
-            Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-            galleryIntent.setType("image/*");
-            startActivityForResult(galleryIntent, GALLERY_CODE);
-        });
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.d(DEBUG_TAG, "denied ");
+        } else {
+            Log.d(DEBUG_TAG, "granted ");
+        }
 */
-
     }
 
     @Override
@@ -111,15 +98,33 @@ public class NewInstallActivity extends AppCompatActivity {
     public void externalStorageRqd() {
         String[] perms = { Manifest.permission.WRITE_EXTERNAL_STORAGE };
         if (EasyPermissions.hasPermissions(this, perms)) {
+            Log.d(DEBUG_TAG,"HAS PERMISSION");
+            setupAppDirs();
+
             // Have permissions, do the thing!
             Toast.makeText(this, "Permission ok", Toast.LENGTH_SHORT).show();
         } else {
+            Log.d(DEBUG_TAG,"ASK FOR PERMISSION");
+
             // Ask for permission
             String appName = String.format(this.getString(R.string.rationale_external_storage),
                     getApplicationInfo().loadLabel(getPackageManager()).toString());
             EasyPermissions.requestPermissions(this, appName,
                     PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE, perms);
         }
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> list) {
+
+        setupAppDirs();
+
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> list) {
+        // Some permissions have been denied
+        Log.d(DEBUG_TAG,"The user denied permission");
     }
 
     @Override
@@ -134,20 +139,22 @@ public class NewInstallActivity extends AppCompatActivity {
 
     }
 
-    /*
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void setupAppDirs() {
 
-        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
-            mImageUri = data.getData();
-            mTimerImage.setImageURI(mImageUri);
-        }
+        // Some permissions have been granted
+        //Create the directories required by the application
+        String appBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407"; // Hopefully no one else is using this
+        Log.d(DEBUG_TAG, "app base path is " + appBasePath);
+        File imageDir = new File(appBasePath,"images");
+        Log.d(DEBUG_TAG, "imageDir is " + imageDir);
+        boolean res = imageDir.mkdirs(); //Create directory where timer images will be held
+        Log.d(DEBUG_TAG, "imagedir res is " + res);
+        File backupDir = new File(appBasePath,"backups");
+        Log.d(DEBUG_TAG, "backupDir is " + backupDir);
+        res = backupDir.mkdirs(); //Create directory where backups will be held
+        Log.d(DEBUG_TAG, "backudir res is " + res);
+
+        CopyAssets copyassets = new CopyAssets(this);
+        copyassets.CopyAssets(this);
     }
-
-    private void saveTimer() {
-
-
-    }
-    */
 }

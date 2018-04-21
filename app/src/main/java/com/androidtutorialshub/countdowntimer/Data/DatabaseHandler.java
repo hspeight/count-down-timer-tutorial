@@ -3,7 +3,6 @@ package com.androidtutorialshub.countdowntimer.Data;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,6 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.androidtutorialshub.countdowntimer.Model.Timer;
+import com.androidtutorialshub.countdowntimer.Model.Backup;
 import com.androidtutorialshub.countdowntimer.Utils.DBUtil;
 
 import java.util.ArrayList;
@@ -28,6 +28,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
+        try {
+            db.execSQL(DBUtil.CREATE_TABLE_TIMER);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            db.execSQL(DBUtil.CREATE_TABLE_BACKUPS);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        /*
         String CREATE_TIMER_TABLE = "CREATE TABLE " + DBUtil.TABLE_NAME_TIMER + " (" +
                 DBUtil.TIM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 DBUtil.TIM_TITLE + " TEXT, " +
@@ -45,6 +58,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        */
     }
 
     @Override
@@ -53,6 +67,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         try {
             db.execSQL("DROP TABLE IF EXISTS " + DBUtil.TABLE_NAME_TIMER);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            db.execSQL("DROP TABLE IF EXISTS " + DBUtil.TABLE_NAME_BACKUPS);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -174,8 +193,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         try {
             db.execSQL("DELETE FROM " + DBUtil.TABLE_NAME_TIMER +
                         " WHERE " + DBUtil.TIM_STATUS + selector + "\";");
-            Log.d(DEBUG_TAG, "delete statement is " + "DELETE FROM " + DBUtil.TABLE_NAME_TIMER +
-                    " WHERE " + DBUtil.TIM_STATUS + selector + "\";");
+            //Log.d(DEBUG_TAG, "delete statement is " + "DELETE FROM " + DBUtil.TABLE_NAME_TIMER +
+            //        " WHERE " + DBUtil.TIM_STATUS + selector + "\";");
+            //result = true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        db.close();
+        return true;  // need to do a proper return
+    }
+
+    //Delete timer from database
+    public boolean deleteTimerById(int id) {
+
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.execSQL("DELETE FROM " + DBUtil.TABLE_NAME_TIMER +
+                    " WHERE " + DBUtil.TIM_ID + "=" + id + ";");
+            Log.d(DEBUG_TAG, "delete timer statement is " + "DELETE FROM " + DBUtil.TABLE_NAME_TIMER +
+                    " WHERE " + DBUtil.TIM_ID + "=" + id + ";");
             //result = true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -223,6 +259,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
         //System.out.println("!!- "  + dbString);
         db.close();
+        c.close();
         return dbString;
     }
 
@@ -252,6 +289,102 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     //public boolean deleteRowsByType (String type) {
 
     //}
+
+    //***************************************************/
+    /************ Backups CRUD functions ***************/
+    //***************************************************/
+
+    //Add details for a backup
+    public void addBackup(Backup backup) {
+
+        //Log.d(DEBUG_TAG, "Adding backup row");
+
+        ContentValues value = new ContentValues();
+        value.put(DBUtil.BCK_FILENAME, backup.getFilename());
+        value.put(DBUtil.BCK_NUMROWS, backup.getNumrows());
+        value.put(DBUtil.BCK_TIMESTAMP, backup.getTimestamp());
+        value.put(DBUtil.BCK_NOTES, backup.getNotes());
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.insert(DBUtil.TABLE_NAME_BACKUPS, null, value);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        db.close();
+
+    }
+    public String getBackupIds() {
+
+        StringBuilder dbString = new StringBuilder();
+
+
+        SQLiteDatabase db = getReadableDatabase();
+        String query = "SELECT bck_id FROM " + DBUtil.TABLE_NAME_BACKUPS + ";";
+
+        Cursor c = db.rawQuery(query, null);
+        c.moveToFirst();
+
+        while (!c.isAfterLast()) {
+            if (c.getString(c.getColumnIndex("bck_id")) != null) {
+                dbString.append(c.getString(c.getColumnIndex("bck_id")));
+                dbString.append(":"); // Delimiter between record IDs
+                c.moveToNext();
+            }
+        }
+        db.close();
+        c.close();
+        String retStr = dbString.toString();
+        if(retStr.length() > 0)
+            retStr = retStr.substring(0, retStr.length() - 1);
+
+        //Log.d(DEBUG_TAG, "str is " + retStr);
+
+        return retStr;
+        //return dbString.toString();
+    }
+
+    public Backup getBackup(int id) {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(DBUtil.TABLE_NAME_BACKUPS, new String[]
+                        {DBUtil.BCK_ID, DBUtil.BCK_FILENAME, DBUtil.BCK_NUMROWS, DBUtil.BCK_TIMESTAMP,
+                                DBUtil.BCK_NOTES},
+                DBUtil.BCK_ID + "=?",
+                new String[]{String.valueOf(id)}, null, null, null, null);
+        //Log.d(DEBUG_TAG, "cursor count is " + cursor.getCount());
+
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            return new Backup(Integer.parseInt(cursor.getString(0)),
+                    cursor.getString(1),
+                    cursor.getInt(2),
+                    cursor.getInt(3),
+                    cursor.getString(4));
+        } else {
+            cursor.close();
+            return new Backup();
+        }
+
+    }
+
+    //Delete backup row from database
+    public boolean deleteBackupRow(int id) {
+        String selector;
+
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            db.execSQL("DELETE FROM " + DBUtil.TABLE_NAME_BACKUPS +
+                    " WHERE " + DBUtil.BCK_ID + "=" + id + ";");
+            //Log.d(DEBUG_TAG, "delete statement is " + "DELETE FROM " + DBUtil.TABLE_NAME_BACKUPS +
+            //        " WHERE " + DBUtil.BCK_ID + "=" + id + ";");
+            //result = true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        db.close();
+        return true;  // need to do a proper return
+    }
 
 }
 

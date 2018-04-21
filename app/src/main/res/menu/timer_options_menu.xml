@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/timerMenuItemEdit"
+        android:title="@string/timer_menu_option_edit"
+        />
+    <item android:id="@+id/timerMenuItemDelete"
+        android:title="@string/timer_menu_option_delete"
+        />
+</menu>

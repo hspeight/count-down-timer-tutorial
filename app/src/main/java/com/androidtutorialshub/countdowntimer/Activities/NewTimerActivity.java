@@ -1,5 +1,8 @@
 package com.androidtutorialshub.countdowntimer.Activities;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -23,14 +26,23 @@ import com.androidtutorialshub.countdowntimer.Fragments.TimePickerFrag;
 import com.androidtutorialshub.countdowntimer.Model.Timer;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.imagepipeline.core.ImagePipeline;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
+import pub.devrel.easypermissions.EasyPermissions;
+
+import static com.androidtutorialshub.countdowntimer.Activities.NewInstallActivity.PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE;
 
 public class NewTimerActivity extends AppCompatActivity {
     public String DEBUG_TAG = "!!NTA";
@@ -42,21 +54,29 @@ public class NewTimerActivity extends AppCompatActivity {
     DatabaseHandler db;
     SimpleDraweeView draweeView;
     String currentTimeStamp, fName;
+    int mId;
+    boolean newTimer, imageClicked;
+    String imageBasePath, mImage;
+    Uri imageUri;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fresco.initialize(this);
+        if (! Fresco.hasBeenInitialized())
+            Fresco.initialize(this);
         setContentView(R.layout.activity_new_timer);
-        Log.d(DEBUG_TAG, "env=" + Environment.getExternalStorageDirectory().toString());
+        //Log.d(DEBUG_TAG, "env=" + Environment.getExternalStorageDirectory().toString());
         db = new DatabaseHandler(this, null, null, 1);
 
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
+        // add back arrow to toolbar
+        if (getSupportActionBar() != null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
 
-        //mTimerImage = findViewById(R.id.imageButtonTimerImage);
-        //mDate = findViewById(R.id.edtTargetDate);
-        //mTime = findViewById(R.id.edtTargetTime);
         mSetDate = findViewById(R.id.btnSetDate);
         mSetTime = findViewById(R.id.btnSetTime);
         mTitle = findViewById(R.id.edtTextTitle);
@@ -64,25 +84,42 @@ public class NewTimerActivity extends AppCompatActivity {
         mMessage = findViewById(R.id.edtMessage);
         draweeView = findViewById(R.id.timer_image);
 
+        mId = getIntent().getIntExtra("id", -1);
+        newTimer = mId == -1;
 
-        // just for testing
-        mTitle.setText("This is a timer title");
-        mDesc.setText("This is the short description");
+        //Log.d(DEBUG_TAG,"extras=" + mId);
+        imageBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407/images/";
+
+        imageClicked = false;
+        if (!newTimer) {
+            Timer edTimer = db.getTimer(mId);
+            mTitle.setText(edTimer.getTitle());
+            mMessage.setText(edTimer.getMessage());
+            mImage = edTimer.getImage();
+            String imagePath = imageBasePath + mImage;
+            imageUri= Uri.fromFile(new File(imagePath));// For files on device
+            draweeView.setImageURI(imageUri); //show the image
+            //String stringDate = getDateTime((long) edTimer.getTimestamp(), "EEE dd MMM yyyy");
+            mSetDate.setText(getDateTime((long) edTimer.getTimestamp(), "EEE dd MMM yyyy"));
+            mSetTime.setText(getDateTime((long) edTimer.getTimestamp(), "HH:mm"));
+            // convert db value to string date
+        } else {
+            getRandomDate();
+            getRandomTime();
+        }
 
         draweeView.setOnClickListener(v -> {
+            imageClicked = true;
             Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
             galleryIntent.setType("image/*");
             startActivityForResult(galleryIntent, GALLERY_CODE);
         });
-
 
         mSetDate.setOnClickListener(arg0 -> {
 
             DialogFragment newFragment = new DatePickerFrag();
             newFragment.show(getSupportFragmentManager(), "datePicker");
 
-            //mSetDate.setText(m);
-            // Log.d(DEBUG_TAG,mTitle.getText().toString());
         });
 
         mSetTime.setOnClickListener(arg0 -> {
@@ -107,9 +144,12 @@ public class NewTimerActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.save_timer:
                 //saveTimer();
-                Log.d(DEBUG_TAG, "Clicked menu item save");
+                //Log.d(DEBUG_TAG, "Clicked menu item save");
                 save_timer_to_db();
                 this.finish();
+                return true;
+            case android.R.id.home:
+                finish(); // close this activity and return to preview activity (if there is any)
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -125,17 +165,6 @@ public class NewTimerActivity extends AppCompatActivity {
 
             draweeView.setImageURI(mImageUri);
 
-            //Log.d(DEBUG_TAG, "imageuri is " + mImageUri);
-            //Log.d(DEBUG_TAG, "imageuri lastpathseg is " + mImageUri.getLastPathSegment());
-            //Log.d(DEBUG_TAG, "imageuri tostring is " + mImageUri.toString());
-            //Log.d(DEBUG_TAG, "getImagePath " + getImagePath(mImageUri));
-
-            //draweeView.setImageURI(mImageUri);
-
-            //Bitmap tmp = BitmapFactory.decodeFile(mImageUri.toString());
-            //Bitmap bitmap;
-
-
         }
     }
 
@@ -146,16 +175,24 @@ public class NewTimerActivity extends AppCompatActivity {
         fName = "cfm_" + currentTimeStamp + ".jpg";
 
         Timer timer = new Timer();
+        timer.setKey(mId);
         timer.setTitle(mTitle.getText().toString());
         timer.setDesc(mDesc.getText().toString());
         timer.setMessage(mMessage.getText().toString());
-        int tStamp = date_to_timestamp(mSetDate.getText().toString(), "EEE d MMM yyyy");
+        int tStamp = date_to_timestamp(mSetDate.getText().toString() + " " + mSetTime.getText().toString());
         timer.setTimestamp(tStamp);
         timer.setImage(fName);
         timer.setStatus("L"); // Always set to live for now
         timer.setType("R"); // R = real
 
-        db.addTimer(timer);
+        if (newTimer) {
+            db.addTimer(timer);
+        } else {
+            db.updateTimer(timer);
+            if (imageClicked)
+                delete_image_from_fs();
+            //if image has been clicked delete the old one
+        }
 
         // Now save the image to external storage
         try {
@@ -167,8 +204,41 @@ public class NewTimerActivity extends AppCompatActivity {
 
     }
 
-    private int date_to_timestamp(String dateIn, String pattern) {
-        SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.US);
+    private void delete_image_from_fs() {
+
+        Context c = getApplicationContext();
+        String[] perms = { Manifest.permission.WRITE_EXTERNAL_STORAGE };
+        if (EasyPermissions.hasPermissions(c, perms)) {
+            Log.d(DEBUG_TAG,"HAS PERMISSION to delete");
+            delete_image();
+
+            // Have permissions, do the thing!
+            //Toast.makeText(c, "Permission ok", Toast.LENGTH_SHORT).show();
+        } else {
+            Log.d(DEBUG_TAG,"ASK FOR PERMISSION");
+
+            // Ask for permission
+            String appName = String.format(c.getString(R.string.rationale_external_storage),
+                    c.getApplicationInfo().loadLabel(c.getPackageManager()).toString());
+            EasyPermissions.requestPermissions((Activity) c, appName,
+                    PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE, perms);
+        }
+    }
+
+    private void delete_image() {
+
+        Log.d(DEBUG_TAG,"deleting image..");
+        String appBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407/images"; // Hopefully no one else is using this
+        File file = new File(appBasePath, mImage);
+        boolean deleted = file.delete();
+        Log.d(DEBUG_TAG,"result of delete is " + deleted);
+
+        ImagePipeline imagePipeline = Fresco.getImagePipeline();
+        imagePipeline.clearCaches();
+    }
+
+    private int date_to_timestamp(String dateIn) {
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE d MMM yyyy HH:mm", Locale.US);
         Date date = null;
         try {
             date = sdf.parse(dateIn);
@@ -180,10 +250,8 @@ public class NewTimerActivity extends AppCompatActivity {
         System.out.println(millis);
         //Log.d(DEBUG_TAG, dateIn + "£" + millis);
 
-        int epoch = (int) millis;
-        return epoch;
+        return (int) millis;
     }
-
 
     public void saveTempBitmap(Bitmap bitmap) {
         if (isExternalStorageWritable()) {
@@ -198,19 +266,12 @@ public class NewTimerActivity extends AppCompatActivity {
 
     private void saveImage(Bitmap finalBitmap) {
 
-        String root = Environment.getExternalStorageDirectory().toString();
-        //Log.d(DEBUG_TAG, "root is " + root);
-        File myDir = new File(root + "/cfm_images");
-        Log.d(DEBUG_TAG, "myDir is " + myDir);
+        String appBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407/images";
 
-        boolean result = myDir.mkdirs();
-
-        File file = new File(myDir, fName);
-        //if (file.exists()) file.delete ();
-
+        //File imageDir = new File(appBasePath,"images");
+        File file = new File(appBasePath, fName);
         try {
             Log.d(DEBUG_TAG, "file is " + file);
-
             FileOutputStream out = new FileOutputStream(file);
             finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.flush();
@@ -225,4 +286,56 @@ public class NewTimerActivity extends AppCompatActivity {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
+
+    private void getRandomDate(){
+
+        //****************************** GET A RANDOM DATE FOR TESTING ******************/
+        DateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss",Locale.US);
+        DateFormat formatter2 = new SimpleDateFormat("EEE dd MMM yyyy",Locale.US);
+
+        Calendar cal=Calendar.getInstance();
+        String str_date1="01-January-1960 00:00:00";
+        String str_date2="31-December-2040 23:59:00";
+        try {
+            cal.setTime(formatter.parse(str_date1));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Long value1 = cal.getTimeInMillis();
+        try {
+            cal.setTime(formatter.parse(str_date2));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Long value2 = cal.getTimeInMillis();
+        long value3 = (long)(value1 + Math.random()*(value2 - value1));
+        cal.setTimeInMillis(value3);
+        //System.out.println(formatter2.format(cal.getTime()));
+        mSetDate.setText(formatter2.format(cal.getTime()));
+        //************************************ END OF TEST CODE ******************************/
+    }
+
+    private void getRandomTime() {
+
+        //****************************** GET A RANDOM TIME FOR TESTING ******************/
+        Random ran = new Random();
+        int mins = ran.nextInt((23 - 0) + 1) + 0;
+        int secs = ran.nextInt((59 - 0) + 1) + 0;
+        mSetTime.setText(mins + ":" + secs);
+        //************************************ END OF TEST CODE ******************************/
+
+    }
+
+    private String getDateTime(long time, String pattern) {
+        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+        cal.setTimeInMillis(time * 1000);
+        //String ret = android.text.format.DateFormat.format(pattern, cal).toString();
+        return android.text.format.DateFormat.format(pattern, cal).toString();
+    }
+   /*
+    private String getTime(long time) {
+
+        return time;
+    }
+    */
 }

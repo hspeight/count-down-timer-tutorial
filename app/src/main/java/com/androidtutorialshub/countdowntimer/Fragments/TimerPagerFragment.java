@@ -1,6 +1,7 @@
 package com.androidtutorialshub.countdowntimer.Fragments;
 
-
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -10,6 +11,9 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v7.view.ContextThemeWrapper;
+import android.support.v7.widget.PopupMenu;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,9 +22,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.androidtutorialshub.countdowntimer.Activities.NewTimerActivity;
 import com.androidtutorialshub.countdowntimer.Activities.R;
+import com.androidtutorialshub.countdowntimer.Activities.TimerPager;
 import com.androidtutorialshub.countdowntimer.Data.DatabaseHandler;
 import com.androidtutorialshub.countdowntimer.Model.Timer;
+import com.androidtutorialshub.countdowntimer.Utils.DBUtil;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipeline;
@@ -29,11 +37,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static android.app.Activity.RESULT_OK;
+import pub.devrel.easypermissions.EasyPermissions;
 
+import static android.app.Activity.RESULT_OK;
+import static com.androidtutorialshub.countdowntimer.Activities.NewInstallActivity.PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -43,7 +56,7 @@ public class TimerPagerFragment extends Fragment {
     OnYouChangedTheImage mCallback;
     // Container Activity must implement this interface
     public interface OnYouChangedTheImage {
-        public void onArticleSelected(int position);
+        void onArticleSelected(int position);
     }
 
     private static final int GALLERY_CODE = 1;
@@ -54,6 +67,8 @@ public class TimerPagerFragment extends Fragment {
 
     DatabaseHandler db;
 
+    //SendMessage SM;
+
     /*
      * The argument key for the page number this fragment represents.
      */
@@ -61,11 +76,13 @@ public class TimerPagerFragment extends Fragment {
     public static final String ARG_TITLE = "title";
     public static final String ARG_IMAGE = "image";
     public static final String ARG_MESSAGE = "message";
+    public static final String ARG_TIMESTAMP = "timestamp";
 
     private int mId;
     private String mTitle;
     private String mMessage;
     private String mImage;
+    private int mTimestamp;
 
     private static String DEBUG_TAG = "!!TIMERPAGERFRAG";
 
@@ -89,7 +106,7 @@ public class TimerPagerFragment extends Fragment {
     private TextView textViewYrs;
     private TextView textViewDayLit;
     private TextView textViewYrsLit;
-    private TextView textRowId, textFileName;
+    private TextView textRowId, textFileName, contextMenu;
     private String orientation;
     private CountDownTimer countDownTimer;
     private boolean togDays = true;
@@ -118,6 +135,7 @@ public class TimerPagerFragment extends Fragment {
         args.putString(ARG_TITLE, myTimer.getTitle());
         args.putString(ARG_IMAGE, myTimer.getImage());
         args.putString(ARG_MESSAGE,myTimer.getMessage());
+        args.putInt(ARG_TIMESTAMP,myTimer.getTimestamp());
         //Log.d(DEBUG_TAG, "putting image " + ARG_IMAGE);
         //args.putString(ARG_INFO, myEvent.getInfo());
         //args.putInt(ARG_TIME, myEvent.getTime());
@@ -132,6 +150,9 @@ public class TimerPagerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Log.d(DEBUG_TAG,"*********init = " + Fresco.hasBeenInitialized());
+        if (! Fresco.hasBeenInitialized())
+            Fresco.initialize(getContext());
 
         setHasOptionsMenu(true); // required so that edit menu will show in fragment
 
@@ -139,10 +160,13 @@ public class TimerPagerFragment extends Fragment {
         mTitle = getArguments().getString(ARG_TITLE);
         mImage = getArguments().getString(ARG_IMAGE);
         mMessage = getArguments().getString(ARG_MESSAGE);
+        mTimestamp = getArguments().getInt(ARG_TIMESTAMP);
         //Log.d(DEBUG_TAG, "image here is " +
 
         //Log.d(DEBUG_TAG, "create db handler");
         db = new DatabaseHandler(getActivity(), null, null, 1);
+
+        startStop(); // Show the timer values
 
     }
 
@@ -152,7 +176,6 @@ public class TimerPagerFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_timer_pager, container, false);
-
         rootView = (ViewGroup) inflater
                 .inflate(R.layout.fragment_timer_pager, container, false);
 
@@ -169,10 +192,10 @@ public class TimerPagerFragment extends Fragment {
     private void initViews() {
 
         draweeView = rootView.findViewById(R.id.timer_image);
-        imageBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm_images/";
+        imageBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407/images/";
         String imagePath = imageBasePath + mImage;
         imageUri= Uri.fromFile(new File(imagePath));// For files on device
-        draweeView.setImageURI(imageUri);
+        draweeView.setImageURI(imageUri); //show the image
         //Log.d(DEBUG_TAG,"imageUri is " + imageUri + " or " + Uri.parse(imageUri));
         draweeView.setTag(imageUri);   //setting this to be used when changing image
         textTitle = rootView.findViewById(R.id.textTitle);
@@ -180,6 +203,13 @@ public class TimerPagerFragment extends Fragment {
         textMessage = rootView.findViewById(R.id.textMessage);
         textMessage.setText(mMessage);
         progressBarCircleSec = rootView.findViewById(R.id.progressBarCircleSec);
+        /* Open the new timer fragment if the seconds circle is clicked
+        progressBarCircleSec.setOnClickListener(v -> {
+            //Toast.makeText(getActivity(), "Clicked", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getContext(), NewTimerActivity.class);
+            startActivity(intent);
+        });
+        */
         progressBarCircleMin = rootView.findViewById(R.id.progressBarCircleMin);
         progressBarCircleHrs = rootView.findViewById(R.id.progressBarCircleHrs);
         progressBarCircleDay = rootView.findViewById(R.id.progressBarCircleDay);
@@ -194,7 +224,7 @@ public class TimerPagerFragment extends Fragment {
         textRowId.setText("(" + mId +")");
         textFileName = rootView.findViewById(R.id.txtfilename);
         textFileName.setText(mImage);
-        Log.d(DEBUG_TAG, "mImage is " + mImage + ", imageUri is " + imageUri + " id is " + mId);
+        //Log.d(DEBUG_TAG, "mImage is " + mImage + ", imageUri is " + imageUri + " id is " + mId);
         /*
         textViewDay.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -214,25 +244,108 @@ public class TimerPagerFragment extends Fragment {
             orientation = "PORTRAIT";
         }
 
+        contextMenu = rootView.findViewById(R.id.timerOptions);
+        contextMenu.setOnClickListener(view -> {
+            //creating a popup menu
+            //PopupMenu popup = new PopupMenu(getContext(), contextMenu);
+            Context wrapper = new ContextThemeWrapper(view.getContext(), R.style.MaterialBaseBaseTheme_Light);
+            PopupMenu popup = new PopupMenu(wrapper, view);
+            //inflating menu from xml resource
+            popup.inflate(R.menu.timer_options_menu);
+            //adding click listener
+            popup.setOnMenuItemClickListener(item -> {
+                switch (item.getItemId()) {
+                    case R.id.timerMenuItemDelete:
+                        //fileToDelete = values.get(position).getFilename();
+                        //rowId = values.get(position).getKey();
+                        //Log.d(DEBUG_TAG,"Filename is " + fileToDelete);
+                        show_delete_dialog(getContext());
+                        break;
+                    case R.id.timerMenuItemEdit:
+                        //Log.d(DEBUG_TAG,"Filename is " + values.get(position).getFilename());
+                        Intent intent = new Intent(getContext(), NewTimerActivity.class);
+                        intent.putExtra("id", mId);
+                        startActivity(intent);
+                        //handle menu2 click
+                        break;
+                }
+                return false;
+            });
+            //displaying the popup
+            popup.show();
+        });
+
+/*
         draweeView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
                 galleryIntent.setType("image/*");
                 startActivityForResult(galleryIntent, GALLERY_CODE);
-                Toast.makeText(getActivity(), "Clicked " + draweeView.getTag(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getActivity(), "Clicked " + draweeView.getTag(), Toast.LENGTH_SHORT).show();
                 UriWhenClicked = draweeView.getTag().toString();
             }
         });
-
+*/
+        String stringDate = getDate((long) mTimestamp);
+        TextView textviewStringDate = rootView.findViewById(R.id.txtStringDate);
+        textviewStringDate.setText(stringDate);
 
     }
 
-    /**
-     * method to initialize the click listeners
-     */
-    private void initListeners() {
-        //imageViewReset.setOnClickListener(this);
-        //imageViewStartStop.setOnClickListener(this);
+    private void show_delete_dialog(Context context) {
+        MaterialDialog dialog = new MaterialDialog.Builder(context)
+                .title(R.string.delete_timer_title)
+                .content(R.string.delete_timer_message)
+                .positiveText(R.string.delete)
+                .negativeText(R.string.cancel)
+                .onPositive((dlg,which) -> {
+                    delete_timer_from_db();
+                    delete_image_from_fs(context);
+                    mCallback.onArticleSelected(mId);
+                    //remove(0);
+                     //Toast.makeText(context, "Clicked OK", Toast.LENGTH_SHORT).show();
+                })
+                .show();
+    }
+
+    private void delete_timer_from_db() {
+
+        //Log.d(DEBUG_TAG,"mId is " + mId);
+        // Now delete the entry from the database
+        db.deleteTimerById(mId);
+
+    }
+
+    private void delete_image_from_fs(Context c) {
+
+        String[] perms = { Manifest.permission.WRITE_EXTERNAL_STORAGE };
+        if (EasyPermissions.hasPermissions(c, perms)) {
+            Log.d(DEBUG_TAG,"HAS PERMISSION to delete");
+            delete_image();
+
+            // Have permissions, do the thing!
+            //Toast.makeText(c, "Permission ok", Toast.LENGTH_SHORT).show();
+        } else {
+            Log.d(DEBUG_TAG,"ASK FOR PERMISSION");
+
+            // Ask for permission
+            String appName = String.format(c.getString(R.string.rationale_external_storage),
+                    c.getApplicationInfo().loadLabel(c.getPackageManager()).toString());
+            EasyPermissions.requestPermissions((Activity) c, appName,
+                    PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE, perms);
+        }
+    }
+
+    private void delete_image() {
+
+        Log.d(DEBUG_TAG,"deleting image..");
+        String appBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407/images"; // Hopefully no one else is using this
+        File file = new File(appBasePath, mImage);
+        boolean deleted = file.delete();
+        Log.d(DEBUG_TAG,"result of delete is " + deleted);
+
+        ImagePipeline imagePipeline = Fresco.getImagePipeline();
+        imagePipeline.clearCaches();
     }
 
     /**
@@ -272,7 +385,7 @@ public class TimerPagerFragment extends Fragment {
      */
     private void startCountDownTimer() {
 
-        int mTime = 1518926400; // 11/2/18 04:00:00
+        int mTime = mTimestamp; // This is the value from the DB record
         //int mTime = -314373600; // my DOB
         //int mTime = 1204744736; // 5/3/08 19:18:56
         //int mTime = 749383200; // 30/9/93 10:00:00
@@ -287,6 +400,8 @@ public class TimerPagerFragment extends Fragment {
             public void onTick(long millisUntilFinished) {
 
                 long secs = timeDiff + ((millisToStart / 1000) - ((int) (millisUntilFinished / 1000)));
+                if (secs < 0)
+                    secs *= -1;
                 long modSecs = secs % 60;
                 long minsInHour = (secs / 60) % 60;
                 //long minsInTotal = secs / 60;
@@ -408,7 +523,7 @@ public class TimerPagerFragment extends Fragment {
                 ImagePipeline imagePipeline = Fresco.getImagePipeline();
                 imagePipeline.clearCaches();
                 draweeView.setImageURI(mImageUri);
-                mCallback.onArticleSelected(0);
+                //mCallback.onArticleSelected(0);
 
                 //Timer timer = db.getTimer(mId);
                 Log.d(DEBUG_TAG, "Image changed from " + UriWhenClicked + " to " + mImageUri + " id is " + mId);
@@ -431,14 +546,10 @@ public class TimerPagerFragment extends Fragment {
 
     private void saveImage(Bitmap finalBitmap) {
 
-        imageBasePath = Environment.getExternalStorageDirectory().toString();
-        //Log.d(DEBUG_TAG, "root is " + root);
-        File myDir = new File(imageBasePath + "/cfm_images");
-        Log.d(DEBUG_TAG, "myDir is " + myDir);
+        //imageBasePath = Environment.getExternalStorageDirectory().toString();
+        String appBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407";
 
-        boolean result = myDir.mkdirs();
-
-        File file = new File(imageBasePath + "/cfm_images/" + oldFname);
+        File file = new File(appBasePath, "images/" + oldFname);
         if (file.exists()) file.delete ();
 
         try {
@@ -462,6 +573,11 @@ public class TimerPagerFragment extends Fragment {
         return false;
     }
 
+    interface SendMessage {
+        void sendData(String message);
+    }
+
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -472,8 +588,15 @@ public class TimerPagerFragment extends Fragment {
             mCallback = (OnYouChangedTheImage) getActivity();
         } catch (ClassCastException e) {
             throw new ClassCastException(getActivity().toString()
-                    + " must implement OnHeadlineSelectedListener");
+                    + " Error in retrieving data. Please try again");
         }
+    }
+
+    private String getDate(long time) {
+        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+        cal.setTimeInMillis(time * 1000);
+        String date = DateFormat.format("dd-MM-yyyy", cal).toString();
+        return date;
     }
 
     /*
