@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.androidtutorialshub.countdowntimer.Data.DatabaseHandler;
 import com.androidtutorialshub.countdowntimer.Fragments.DatePickerFrag;
 import com.androidtutorialshub.countdowntimer.Fragments.TimePickerFrag;
+import com.androidtutorialshub.countdowntimer.Fragments.TimerPagerFragment;
 import com.androidtutorialshub.countdowntimer.Model.Timer;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.view.SimpleDraweeView;
@@ -44,7 +45,7 @@ import pub.devrel.easypermissions.EasyPermissions;
 
 import static com.androidtutorialshub.countdowntimer.Activities.NewInstallActivity.PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE;
 
-public class NewTimerActivity extends AppCompatActivity {
+public class TimerActivity extends AppCompatActivity {
     public String DEBUG_TAG = "!!NTA";
 
     Button mSetDate, mSetTime;
@@ -55,7 +56,7 @@ public class NewTimerActivity extends AppCompatActivity {
     SimpleDraweeView draweeView;
     String currentTimeStamp, fName;
     int mId;
-    boolean newTimer, imageClicked;
+    boolean newTimer, imageChanged, mTimerHasBeenUpdated;
     String imageBasePath, mImage;
     Uri imageUri;
 
@@ -85,12 +86,12 @@ public class NewTimerActivity extends AppCompatActivity {
         draweeView = findViewById(R.id.timer_image);
 
         mId = getIntent().getIntExtra("id", -1);
-        newTimer = mId == -1;
+        newTimer = mId == -1; //click the bulb to expand
 
         //Log.d(DEBUG_TAG,"extras=" + mId);
         imageBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407/images/";
 
-        imageClicked = false;
+        imageChanged = false;
         if (!newTimer) {
             Timer edTimer = db.getTimer(mId);
             mTitle.setText(edTimer.getTitle());
@@ -109,7 +110,6 @@ public class NewTimerActivity extends AppCompatActivity {
         }
 
         draweeView.setOnClickListener(v -> {
-            imageClicked = true;
             Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
             galleryIntent.setType("image/*");
             startActivityForResult(galleryIntent, GALLERY_CODE);
@@ -146,6 +146,7 @@ public class NewTimerActivity extends AppCompatActivity {
                 //saveTimer();
                 //Log.d(DEBUG_TAG, "Clicked menu item save");
                 save_timer_to_db();
+                mTimerHasBeenUpdated = true;
                 this.finish();
                 return true;
             case android.R.id.home:
@@ -161,8 +162,9 @@ public class NewTimerActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
+            imageChanged = true;
             mImageUri = data.getData();
-
+//Log.d(DEBUG_TAG,"mImageUri is " + mImageUri);
             draweeView.setImageURI(mImageUri);
 
         }
@@ -189,17 +191,22 @@ public class NewTimerActivity extends AppCompatActivity {
             db.addTimer(timer);
         } else {
             db.updateTimer(timer);
-            if (imageClicked)
+            if (imageChanged) {
                 delete_image_from_fs();
+                //ImagePipeline imagePipeline = Fresco.getImagePipeline();
+                //imagePipeline.clearCaches();
+            }
             //if image has been clicked delete the old one
         }
 
-        // Now save the image to external storage
-        try {
-            // The result of (MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageUri)) is a bitmap
-            saveTempBitmap(MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageUri));
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (newTimer || (!newTimer && imageChanged)) {
+            // Now save the image to external storage
+            try {
+                // The result of (MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageUri)) is a bitmap
+                saveTempBitmap(MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageUri));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }
@@ -332,10 +339,7 @@ public class NewTimerActivity extends AppCompatActivity {
         //String ret = android.text.format.DateFormat.format(pattern, cal).toString();
         return android.text.format.DateFormat.format(pattern, cal).toString();
     }
-   /*
-    private String getTime(long time) {
 
-        return time;
-    }
-    */
+
+
 }

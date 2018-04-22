@@ -263,7 +263,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return dbString;
     }
 
-    public int updateTimer(Timer timer) {
+    public void updateTimer(Timer timer) {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -276,8 +276,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         cv.put(DBUtil.TIM_STATUS, timer.getStatus());
         cv.put(DBUtil.TIM_TYPE, timer.getType());
 
-        return db.update(DBUtil.TABLE_NAME_TIMER, cv, DBUtil.TIM_ID + "=?",
+        db.update(DBUtil.TABLE_NAME_TIMER, cv, DBUtil.TIM_ID + "=?",
                         new String[] {String.valueOf(timer.getKey())});
+        db.close();
 
     }
 

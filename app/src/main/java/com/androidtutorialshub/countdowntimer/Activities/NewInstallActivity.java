@@ -48,7 +48,7 @@ public class NewInstallActivity extends AppCompatActivity implements EasyPermiss
 
         btnNewTimer = findViewById(R.id.add_new_timer);
         btnNewTimer.setOnClickListener(view -> {
-            Intent intent = new Intent(view.getContext(), NewTimerActivity.class);
+            Intent intent = new Intent(view.getContext(), TimerActivity.class);
             startActivity(intent);
             //this.finish();
 

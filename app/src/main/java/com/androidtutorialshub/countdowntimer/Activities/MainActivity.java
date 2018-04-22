@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,7 +26,6 @@ import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
-import com.mikepenz.materialdrawer.model.interfaces.IProfile;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -109,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         /*
         mButtonAdd = findViewById(R.id.btnAdd);
         mButtonAdd.setOnClickListener(view -> {
-            Intent intent = new Intent(view.getContext(), NewTimerActivity.class);
+            Intent intent = new Intent(view.getContext(), TimerActivity.class);
             startActivity(intent);
             //this.finish();
 
@@ -164,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
                         //Log.d(DEBUG_TAG,"position=" + position);
                         switch ((int) drawerItem.getIdentifier()) {
                             case 1:
-                                intent = new Intent(view.getContext(), NewTimerActivity.class);
+                                intent = new Intent(view.getContext(), TimerActivity.class);
                                 startActivity(intent);
                                 result.closeDrawer();
                                 return true;

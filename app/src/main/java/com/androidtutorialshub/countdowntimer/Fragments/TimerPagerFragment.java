@@ -9,7 +9,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.PopupMenu;
@@ -23,12 +25,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.androidtutorialshub.countdowntimer.Activities.NewTimerActivity;
+import com.androidtutorialshub.countdowntimer.Activities.TimerActivity;
 import com.androidtutorialshub.countdowntimer.Activities.R;
-import com.androidtutorialshub.countdowntimer.Activities.TimerPager;
 import com.androidtutorialshub.countdowntimer.Data.DatabaseHandler;
 import com.androidtutorialshub.countdowntimer.Model.Timer;
-import com.androidtutorialshub.countdowntimer.Utils.DBUtil;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipeline;
@@ -37,9 +37,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -67,8 +65,6 @@ public class TimerPagerFragment extends Fragment {
 
     DatabaseHandler db;
 
-    //SendMessage SM;
-
     /*
      * The argument key for the page number this fragment represents.
      */
@@ -78,7 +74,7 @@ public class TimerPagerFragment extends Fragment {
     public static final String ARG_MESSAGE = "message";
     public static final String ARG_TIMESTAMP = "timestamp";
 
-    private int mId;
+    private int mId, editId;
     private String mTitle;
     private String mMessage;
     private String mImage;
@@ -179,7 +175,6 @@ public class TimerPagerFragment extends Fragment {
         rootView = (ViewGroup) inflater
                 .inflate(R.layout.fragment_timer_pager, container, false);
 
-
         //Log.d(DEBUG_TAG, "ONCREATEVIEW");
         initViews();
 
@@ -206,7 +201,7 @@ public class TimerPagerFragment extends Fragment {
         /* Open the new timer fragment if the seconds circle is clicked
         progressBarCircleSec.setOnClickListener(v -> {
             //Toast.makeText(getActivity(), "Clicked", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(getContext(), NewTimerActivity.class);
+            Intent intent = new Intent(getContext(), TimerActivity.class);
             startActivity(intent);
         });
         */
@@ -224,15 +219,7 @@ public class TimerPagerFragment extends Fragment {
         textRowId.setText("(" + mId +")");
         textFileName = rootView.findViewById(R.id.txtfilename);
         textFileName.setText(mImage);
-        //Log.d(DEBUG_TAG, "mImage is " + mImage + ", imageUri is " + imageUri + " id is " + mId);
-        /*
-        textViewDay.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                togDays = !togDays; // toggle value
-                //Toast.makeText(MainActivity.this, "Clicked", Toast.LENGTH_LONG).show();
-            }
-        });
-        */
+
         textViewYrs = rootView.findViewById(R.id.textViewYrs);
         if (textViewYrs != null) {
             //imageRotatorFragment.setImageSelected(imageItem, position);
@@ -244,6 +231,7 @@ public class TimerPagerFragment extends Fragment {
             orientation = "PORTRAIT";
         }
 
+        editId = -1;
         contextMenu = rootView.findViewById(R.id.timerOptions);
         contextMenu.setOnClickListener(view -> {
             //creating a popup menu
@@ -263,10 +251,10 @@ public class TimerPagerFragment extends Fragment {
                         break;
                     case R.id.timerMenuItemEdit:
                         //Log.d(DEBUG_TAG,"Filename is " + values.get(position).getFilename());
-                        Intent intent = new Intent(getContext(), NewTimerActivity.class);
+                        Intent intent = new Intent(getContext(), TimerActivity.class);
                         intent.putExtra("id", mId);
+                        editId = mId; //need to know which id was selected for the edit so we can use it on resume
                         startActivity(intent);
-                        //handle menu2 click
                         break;
                 }
                 return false;
@@ -275,17 +263,6 @@ public class TimerPagerFragment extends Fragment {
             popup.show();
         });
 
-/*
-        draweeView.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                galleryIntent.setType("image/*");
-                startActivityForResult(galleryIntent, GALLERY_CODE);
-                //Toast.makeText(getActivity(), "Clicked " + draweeView.getTag(), Toast.LENGTH_SHORT).show();
-                UriWhenClicked = draweeView.getTag().toString();
-            }
-        });
-*/
         String stringDate = getDate((long) mTimestamp);
         TextView textviewStringDate = rootView.findViewById(R.id.txtStringDate);
         textviewStringDate.setText(stringDate);
@@ -504,83 +481,53 @@ public class TimerPagerFragment extends Fragment {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-            mImageUri = data.getData();
-            if (! mImageUri.toString().equals(UriWhenClicked)) {
-                Timer timer = db.getTimer(mId);
-                oldFname = timer.getImage();
-                //Log.d(DEBUG_TAG, "^^^mImageUri " + mImageUri);
-                try {
-                    // The result of (MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageUri)) is a bitmap
-                    saveTempBitmap(MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), mImageUri));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                //Log.d(DEBUG_TAG, "" + mId);
-                ImagePipeline imagePipeline = Fresco.getImagePipeline();
-                imagePipeline.clearCaches();
-                draweeView.setImageURI(mImageUri);
-                //mCallback.onArticleSelected(0);
+        // if editId is >= zero it means the timer activity was displayed from the timer's context menu
+        // however, i've no idea if anything was changed
 
-                //Timer timer = db.getTimer(mId);
-                Log.d(DEBUG_TAG, "Image changed from " + UriWhenClicked + " to " + mImageUri + " id is " + mId);
-            } else {
-                Log.d(DEBUG_TAG, "Image did not change");
-            }
-        }
     }
-
-    public void saveTempBitmap(Bitmap bitmap) {
-        if (isExternalStorageWritable()) {
-            //Log.d(DEBUG_TAG, "external storage is writeable");
-            saveImage(bitmap);
-        } else {
-            Toast.makeText(getContext(), "External storage is NOT writeable", Toast.LENGTH_SHORT).show();
-            //Log.d(DEBUG_TAG, "external storage is NOT writeable");
-            //prompt the user or do something
-        }
-    }
-
-    private void saveImage(Bitmap finalBitmap) {
-
-        //imageBasePath = Environment.getExternalStorageDirectory().toString();
-        String appBasePath = Environment.getExternalStorageDirectory().toString() + "/cfm4407";
-
-        File file = new File(appBasePath, "images/" + oldFname);
-        if (file.exists()) file.delete ();
-
-        try {
-            Log.d(DEBUG_TAG, "old file is " + oldFname + ". New file is " + file);
-
-            FileOutputStream out = new FileOutputStream(file);
-            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            out.flush();
-            out.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
-    }
-
-    interface SendMessage {
-        void sendData(String message);
-    }
-
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onStart() {
+        super.onStart();
+
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mCallback = (OnYouChangedTheImage) getActivity();
+        } catch (ClassCastException e) {
+            throw new ClassCastException(getActivity().toString()
+                    + " must implement OnHeadlineSelectedListener");
+        }
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (editId >= 0) {
+            // need to chang this to check for anything changed
+            Timer timer = db.getTimer(editId);
+            //Log.d(DEBUG_TAG,timer.getTitle() + "^" + mTitle);
+            if (!timer.getTitle().equals(mTitle)) {
+                tryThis();
+                //mCallback.onArticleSelected(editId);
+                //Log.d(DEBUG_TAG,"Timer changed");
+            }
+        }
+
+        //Log.d(DEBUG_TAG,"editid is " + editId);
+        //Log.d(DEBUG_TAG,"BOOLEAN_VALUE is " + getArguments().getBoolean("BOOLEAN_VALUE"));
+/*
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            String mParam1 = bundle.getString("params");
+            Log.d(DEBUG_TAG,"mParam1 is " + mParam1);
+        }
+        Log.d(DEBUG_TAG,"resumed wuth bundle " + bundle);
 
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
@@ -590,7 +537,39 @@ public class TimerPagerFragment extends Fragment {
             throw new ClassCastException(getActivity().toString()
                     + " Error in retrieving data. Please try again");
         }
+ */
     }
+
+    private void tryThis() {
+
+        // this is here to fix the error 'fragmentmanager is already executing transactions'
+        Handler uiHandler = new Handler();
+        uiHandler.post(() -> mCallback.onArticleSelected(editId));
+    }
+
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+
+    }
+
 
     private String getDate(long time) {
         Calendar cal = Calendar.getInstance(Locale.ENGLISH);
@@ -599,44 +578,5 @@ public class TimerPagerFragment extends Fragment {
         return date;
     }
 
-    /*
-    private static String getScreenResolution(Context context) {
-
-        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        DisplayMetrics metrics = new DisplayMetrics();
-        display.getMetrics(metrics);
-        int width = metrics.widthPixels;
-        int height = metrics.heightPixels;
-
-       // Toast.makeText(context, "{" + width + "," + height + "}", Toast.LENGTH_LONG).show();
-        return "{" + width + "," + height + "}";
-    }
-*/
-
-/*
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
-            mImageUri = data.getData();
-
-            draweeView.setImageURI(mImageUri);
-
-            Log.d(DEBUG_TAG, "imageuri is " + mImageUri);
-            Log.d(DEBUG_TAG, "imageuri lastpathseg is " + mImageUri.getLastPathSegment());
-            Log.d(DEBUG_TAG, "imageuri tostring is " + mImageUri.toString());
-            //Log.d(DEBUG_TAG, "getImagePath " + getImagePath(mImageUri));
-
-            //draweeView.setImageURI(mImageUri);
-
-            //Bitmap tmp = BitmapFactory.decodeFile(mImageUri.toString());
-            //Bitmap bitmap;
-
-
-        }
-    }
-*/
 }
 
