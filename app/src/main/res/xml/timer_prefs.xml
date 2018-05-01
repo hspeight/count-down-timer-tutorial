@@ -1,0 +1,26 @@
+<android.support.v7.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.preference.PreferenceCategory
+        android:title="@string/title_timer">
+        <MultiSelectListPreference
+            android:dialogTitle="@string/pref_time_units"
+            android:entries="@array/pref_time_unit_entries"
+            android:entryValues="@array/pref_time_unit_values"
+            android:key="key_time_units"
+            android:summary="@string/summary_time_units"
+            android:title="@string/title_time_units" />
+    </android.support.v7.preference.PreferenceCategory>
+
+    <android.support.v7.preference.PreferenceCategory
+            android:title="@string/title_image">
+        <ListPreference
+            android:dialogTitle="@string/pref_image_shape"
+            android:entries="@array/pref_image_shape_entries"
+            android:entryValues="@array/pref_image_shape_values"
+            android:key="key_image_shape"
+            android:summary="@string/summary_image_shape"
+            android:title="@string/title_image_shape" />
+    </android.support.v7.preference.PreferenceCategory>
+
+</android.support.v7.preference.PreferenceScreen>

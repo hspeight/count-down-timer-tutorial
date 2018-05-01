@@ -44,6 +44,23 @@
     <string name="new_timer_time">%1$d:%2$d</string>
     <string name="delete_timer_title">Delete Timer?</string>
     <string name="delete_timer_message">This timer will be deleted permanently</string>
+    <string name="affirmation_hint">Add an affirmation or message</string>
+    <string name="description_hint">Short description</string>
+    <string name="time_title_hint">Title</string>
+    <string name="timer_menu_option_settings">Settings</string>
+    <string name="title_general">General</string>
+    <string name="circular_image">circular_image</string>
+    <string name="circular_image_summary">Display a circular image</string>
+    <string name="pref_image_title">Image</string>
+    <string name="pref_image_shape">Chose image shape</string>
+    <string name="summary_image_shape">Display a square or round image</string>
+    <string name="title_image_shape">Image shape</string>
+    <string name="pref_time_units">Choose time units</string>
+    <string name="summary_time_units">Choose which units of time to display</string>
+    <string name="title_time_units">Time units</string>
+    <string name="title_timer">Timer</string>
+    <string name="title_image">Image</string>
+
 
     <string-array name="backup_choices">
         <item>Include Samples</item>

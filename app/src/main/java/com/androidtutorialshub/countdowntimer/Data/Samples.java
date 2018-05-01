@@ -51,12 +51,18 @@ public class Samples extends ContextWrapper {
 
         //getAssetImages();
 
+        int mofified = (int) (System.currentTimeMillis() / 1000); // this will be the modified timestamp
+
+
         timerArray[0] = new Timer("Count down to the new year",
                 "A count down to New Year's Eve",
                 getString(R.string.message_001),
                 getEpoch("01/01/" + (year + 1) + " 00:00:00"),
                 "smp_celebration-3042641__340.jpg",
                 "I",
+                "S",
+                mofified,
+                1,
                 "S");
 
         timerArray[1] = new Timer("Since I stopped smoking",
@@ -65,7 +71,10 @@ public class Samples extends ContextWrapper {
                 getEpoch("11/07/2012 09:00:00"),
                 "smp_cigarettes-2842108__340.jpg",
                 "I",
-                "S");
+                "S",
+                mofified,
+                2,
+                "R");
 
         newDate = dateCalculator(35);
         epoch = convertDateToMillis(newDate);
@@ -76,6 +85,9 @@ public class Samples extends ContextWrapper {
                 epoch,
                 "smp_sand-3289125__340.jpg", // the image
                 "I",
+                "S",
+                mofified,
+                4,
                 "S");
 
         timerArray[3] = new Timer("How old am I..?",
@@ -84,7 +96,10 @@ public class Samples extends ContextWrapper {
                 epoch,
                 "smp_lamborghini-1819244__340.jpg",
                 "I",
-                "S");
+                "S",
+                mofified,
+                8,
+                "R");
 
         newDate = dateCalculator(101);
         epoch = convertDateToMillis(newDate);
@@ -92,8 +107,10 @@ public class Samples extends ContextWrapper {
                 "This will be the best day ever",
                 getString(R.string.message_005),
                 epoch,
-                "smp_beautiful-girl-2003647__340.jpg", // the image
+                "smp_beautiful-girl-2003647__340.jpg",
                 "I",
+                "S", mofified,
+                3,
                 "S");
 
         add_samples_to_db();
@@ -107,7 +124,8 @@ public class Samples extends ContextWrapper {
         //String nextNYE = "01/01/" + year++ + " 00:00:00";
         //System.out.println("!!- " + nextNYE);
         try {
-            epoch = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault()).parse(dateIn).getTime();
+            epoch = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss",
+                        java.util.Locale.getDefault()).parse(dateIn).getTime();
 
         } catch (ParseException e) {
             e.printStackTrace();

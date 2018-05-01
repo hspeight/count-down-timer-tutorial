@@ -57,7 +57,9 @@ public class TimerPager extends FragmentActivity
         for (int i = 0; i < NUM_PAGES; i++) {
             Timer myTimer = db.getTimer(Integer.parseInt(ids[i]));
             timers.add(new Timer(myTimer.getKey(), myTimer.getTitle(),myTimer.getDesc(),
-                    myTimer.getMessage(), myTimer.getTimestamp(), myTimer.getImage(),  myTimer.getStatus(), myTimer.getType()));
+                    myTimer.getMessage(), myTimer.getTimestamp(), myTimer.getImage(),  myTimer.getStatus(),
+                    myTimer.getType(),myTimer.getModified(),
+                    myTimer.getTimeunits(), myTimer.getImageshape()));
         }
 
         return timers;
@@ -93,12 +95,22 @@ public class TimerPager extends FragmentActivity
 
     }
 
-    public void onArticleSelected(int position) {
+    public void onArticleSelected(int mId) {
 
         //Log.d(DEBUG_TAG,"!!!!!!!!!!HORRAY!!!!!!!!!!!! pos is " + position);
         timers = loadTimerDataFromDB();
         mPager.setAdapter(mPagerAdapter);
         mPagerAdapter = new TimerFragmentAdapter(getSupportFragmentManager(), timers);
+        int position = 0;
+        for (int i = 0; i < timers.size(); i ++) {
+            //Log.d(DEBUG_TAG,"index is " + i + "value at i is " + timers.get(i).getKey());
+            if (timers.get(i).getKey() == mId)
+                position = i;
+                //Log.d(DEBUG_TAG,"MATCH");
+            // i is the index
+            // yourArrayList.get(i) is the element
+        }
+        mPager.setCurrentItem(position); // start with event selected from main list
         mPager.getAdapter().notifyDataSetChanged();
 
         // This will be triggered if the timer image is changed

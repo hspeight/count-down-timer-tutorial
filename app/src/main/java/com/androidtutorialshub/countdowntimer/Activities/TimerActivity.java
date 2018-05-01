@@ -54,8 +54,8 @@ public class TimerActivity extends AppCompatActivity {
     private static final int GALLERY_CODE = 1;
     DatabaseHandler db;
     SimpleDraweeView draweeView;
-    String currentTimeStamp, fName;
-    int mId;
+    String currentTimeStamp, fName, mImageShape;
+    int mId, mTimeUnits;
     boolean newTimer, imageChanged, mTimerHasBeenUpdated;
     String imageBasePath, mImage;
     Uri imageUri;
@@ -98,11 +98,15 @@ public class TimerActivity extends AppCompatActivity {
             mMessage.setText(edTimer.getMessage());
             mImage = edTimer.getImage();
             String imagePath = imageBasePath + mImage;
-            imageUri= Uri.fromFile(new File(imagePath));// For files on device
-            draweeView.setImageURI(imageUri); //show the image
+            //imageUri= Uri.fromFile(new File(imagePath));// For files on device
+            mImageUri = Uri.fromFile(new File(imagePath));// For files on device
+            draweeView.setImageURI(mImageUri); //show the image
             //String stringDate = getDateTime((long) edTimer.getTimestamp(), "EEE dd MMM yyyy");
             mSetDate.setText(getDateTime((long) edTimer.getTimestamp(), "EEE dd MMM yyyy"));
             mSetTime.setText(getDateTime((long) edTimer.getTimestamp(), "HH:mm"));
+            //Save units + shape to use when updating
+            mTimeUnits = edTimer.getTimeunits();
+            mImageShape = edTimer.getImageshape();
             // convert db value to string date
         } else {
             getRandomDate();
@@ -164,8 +168,10 @@ public class TimerActivity extends AppCompatActivity {
         if (requestCode == GALLERY_CODE && resultCode == RESULT_OK) {
             imageChanged = true;
             mImageUri = data.getData();
-//Log.d(DEBUG_TAG,"mImageUri is " + mImageUri);
             draweeView.setImageURI(mImageUri);
+        //} else {
+        //
+
 
         }
     }
@@ -175,7 +181,6 @@ public class TimerActivity extends AppCompatActivity {
 
         currentTimeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
         fName = "cfm_" + currentTimeStamp + ".jpg";
-
         Timer timer = new Timer();
         timer.setKey(mId);
         timer.setTitle(mTitle.getText().toString());
@@ -183,31 +188,43 @@ public class TimerActivity extends AppCompatActivity {
         timer.setMessage(mMessage.getText().toString());
         int tStamp = date_to_timestamp(mSetDate.getText().toString() + " " + mSetTime.getText().toString());
         timer.setTimestamp(tStamp);
+        //Log.d(DEBUG_TAG,"fname is " + fName);
         timer.setImage(fName);
         timer.setStatus("L"); // Always set to live for now
         timer.setType("R"); // R = real
-
+        long epoch = System.currentTimeMillis() / 1000; // this will be the modified timestamp
+        timer.setModified((int) epoch);
         if (newTimer) {
+            timer.setTimeunits(15); // Secs, mins, hours, days
+            timer.setImageshape("S");
             db.addTimer(timer);
         } else {
+            timer.setTimeunits(mTimeUnits);
+            timer.setImageshape(mImageShape);
             db.updateTimer(timer);
             if (imageChanged) {
-                delete_image_from_fs();
+                delete_image_from_fs(); // NEED TO USE BLOBS INSTEAD OF FS //
                 //ImagePipeline imagePipeline = Fresco.getImagePipeline();
                 //imagePipeline.clearCaches();
             }
             //if image has been clicked delete the old one
         }
 
-        if (newTimer || (!newTimer && imageChanged)) {
+        //if (newTimer || (!newTimer && imageChanged)) {
             // Now save the image to external storage
             try {
+                if (newTimer && mImageUri == null) {
+                    // set a default image if none was selected
+                    String imagePath = imageBasePath + "smp_dolphin-1739674__340.jpg";
+                    mImageUri = Uri.fromFile(new File(imagePath));// For files on device
+                    //Log.d(DEBUG_TAG,"mImageUri is " + mImageUri);
+                }
                 // The result of (MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageUri)) is a bitmap
                 saveTempBitmap(MediaStore.Images.Media.getBitmap(this.getContentResolver(), mImageUri));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        //}
 
     }
 

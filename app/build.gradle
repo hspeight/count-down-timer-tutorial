@@ -1,3 +1,4 @@
+//noinspection GradleCompatible
 apply plugin: 'com.android.application'
 
 android {
@@ -25,7 +26,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.facebook.fresco:fresco:1.8.1'
     implementation 'pub.devrel:easypermissions:1.2.0'
@@ -36,9 +37,9 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
-    implementation 'com.github.ronaldsmartin:Material-ViewPagerIndicator:1.0.2'
     implementation('com.mikepenz:materialdrawer:6.0.7@aar') {
         transitive = true
     }
+    implementation 'com.android.support:preference-v14:27.1.1'
     testImplementation 'junit:junit:4.12'
 }

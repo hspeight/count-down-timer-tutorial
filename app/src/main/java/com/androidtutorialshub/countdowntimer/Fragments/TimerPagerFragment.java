@@ -25,11 +25,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.androidtutorialshub.countdowntimer.Activities.PrefsActivity;
 import com.androidtutorialshub.countdowntimer.Activities.TimerActivity;
 import com.androidtutorialshub.countdowntimer.Activities.R;
 import com.androidtutorialshub.countdowntimer.Data.DatabaseHandler;
 import com.androidtutorialshub.countdowntimer.Model.Timer;
 import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.core.ImagePipeline;
 
@@ -60,7 +62,6 @@ public class TimerPagerFragment extends Fragment {
     private static final int GALLERY_CODE = 1;
     private Uri mImageUri;
     private String UriWhenClicked;
-    String currentTimeStamp, fName, oldFname, newFname;
     String imageBasePath;
 
     DatabaseHandler db;
@@ -73,12 +74,15 @@ public class TimerPagerFragment extends Fragment {
     public static final String ARG_IMAGE = "image";
     public static final String ARG_MESSAGE = "message";
     public static final String ARG_TIMESTAMP = "timestamp";
+    public static final String ARG_MODIFIED = "modified";
+    public static final String ARG_UNITS = "imageshape";
+    public static final String ARG_SHAPE = "imageshape";
 
     private int mId, editId;
     private String mTitle;
     private String mMessage;
-    private String mImage;
-    private int mTimestamp;
+    private String mImage, mShape;
+    private int mTimestamp, mModified, mUnits;
 
     private static String DEBUG_TAG = "!!TIMERPAGERFRAG";
 
@@ -132,13 +136,10 @@ public class TimerPagerFragment extends Fragment {
         args.putString(ARG_IMAGE, myTimer.getImage());
         args.putString(ARG_MESSAGE,myTimer.getMessage());
         args.putInt(ARG_TIMESTAMP,myTimer.getTimestamp());
-        //Log.d(DEBUG_TAG, "putting image " + ARG_IMAGE);
-        //args.putString(ARG_INFO, myEvent.getInfo());
-        //args.putInt(ARG_TIME, myEvent.getTime());
-        //args.putInt(ARG_DIRECTION, myEvent.getDirection());
-        //args.putInt(ARG_INCSEC, myEvent.getIncsec());
-        //args.putInt(ARG_USEDAYYEAR, myEvent.getDayyear());
-        //args.putInt(ARG_BGCOLOR, Color.CYAN);
+        args.putInt(ARG_MODIFIED,myTimer.getModified());
+        args.putInt(ARG_UNITS,myTimer.getTimeunits());
+        args.putString(ARG_SHAPE,myTimer.getImageshape());
+
         fragment.setArguments(args);
         return fragment;
     }
@@ -157,6 +158,12 @@ public class TimerPagerFragment extends Fragment {
         mImage = getArguments().getString(ARG_IMAGE);
         mMessage = getArguments().getString(ARG_MESSAGE);
         mTimestamp = getArguments().getInt(ARG_TIMESTAMP);
+        mModified = getArguments().getInt(ARG_MODIFIED);
+        mUnits = getArguments().getInt(ARG_UNITS);
+        mShape = getArguments().getString(ARG_SHAPE);
+
+        //PreferenceFragment mPrefsFragment = new PreferenceFragment();
+
         //Log.d(DEBUG_TAG, "image here is " +
 
         //Log.d(DEBUG_TAG, "create db handler");
@@ -165,7 +172,6 @@ public class TimerPagerFragment extends Fragment {
         startStop(); // Show the timer values
 
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -191,13 +197,24 @@ public class TimerPagerFragment extends Fragment {
         String imagePath = imageBasePath + mImage;
         imageUri= Uri.fromFile(new File(imagePath));// For files on device
         draweeView.setImageURI(imageUri); //show the image
+        //draweeView.setImageURI("https://www.dropbox.com/s/ovfo5d6rxjkr8ia/babita_sharma.jpg?dl=0");
         //Log.d(DEBUG_TAG,"imageUri is " + imageUri + " or " + Uri.parse(imageUri));
+        RoundingParams roundingParams = new RoundingParams();
+        // if preference image shape is set to round
+        if (mShape != null && mShape.equals("R")) {
+            roundingParams.setRoundAsCircle(true);
+        } else {
+            roundingParams.setRoundAsCircle(false);
+            roundingParams.setCornersRadius(80f);
+        }
         draweeView.setTag(imageUri);   //setting this to be used when changing image
+        draweeView.getHierarchy().setRoundingParams(roundingParams);
         textTitle = rootView.findViewById(R.id.textTitle);
         textTitle.setText(mTitle);
         textMessage = rootView.findViewById(R.id.textMessage);
         textMessage.setText(mMessage);
         progressBarCircleSec = rootView.findViewById(R.id.progressBarCircleSec);
+
         /* Open the new timer fragment if the seconds circle is clicked
         progressBarCircleSec.setOnClickListener(v -> {
             //Toast.makeText(getActivity(), "Clicked", Toast.LENGTH_SHORT).show();
@@ -244,7 +261,6 @@ public class TimerPagerFragment extends Fragment {
             popup.setOnMenuItemClickListener(item -> {
                 switch (item.getItemId()) {
                     case R.id.timerMenuItemDelete:
-                        //fileToDelete = values.get(position).getFilename();
                         //rowId = values.get(position).getKey();
                         //Log.d(DEBUG_TAG,"Filename is " + fileToDelete);
                         show_delete_dialog(getContext());
@@ -254,6 +270,10 @@ public class TimerPagerFragment extends Fragment {
                         Intent intent = new Intent(getContext(), TimerActivity.class);
                         intent.putExtra("id", mId);
                         editId = mId; //need to know which id was selected for the edit so we can use it on resume
+                        startActivity(intent);
+                        break;
+                    case R.id.timerMenuItemSettings:
+                        intent = new Intent(getContext(), PrefsActivity.class);
                         startActivity(intent);
                         break;
                 }
@@ -484,7 +504,6 @@ public class TimerPagerFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // if editId is >= zero it means the timer activity was displayed from the timer's context menu
         // however, i've no idea if anything was changed
 
     }
@@ -508,36 +527,15 @@ public class TimerPagerFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        // if editId is >= zero it means the timer activity was displayed from the timer's context menu
         if (editId >= 0) {
-            // need to chang this to check for anything changed
             Timer timer = db.getTimer(editId);
-            //Log.d(DEBUG_TAG,timer.getTitle() + "^" + mTitle);
-            if (!timer.getTitle().equals(mTitle)) {
+            // If the modified timestamp has changed the timer must have been updated
+            if (timer.getModified() != mModified) {
                 tryThis();
-                //mCallback.onArticleSelected(editId);
-                //Log.d(DEBUG_TAG,"Timer changed");
             }
         }
 
-        //Log.d(DEBUG_TAG,"editid is " + editId);
-        //Log.d(DEBUG_TAG,"BOOLEAN_VALUE is " + getArguments().getBoolean("BOOLEAN_VALUE"));
-/*
-        Bundle bundle = this.getArguments();
-        if (bundle != null) {
-            String mParam1 = bundle.getString("params");
-            Log.d(DEBUG_TAG,"mParam1 is " + mParam1);
-        }
-        Log.d(DEBUG_TAG,"resumed wuth bundle " + bundle);
-
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception
-        try {
-            mCallback = (OnYouChangedTheImage) getActivity();
-        } catch (ClassCastException e) {
-            throw new ClassCastException(getActivity().toString()
-                    + " Error in retrieving data. Please try again");
-        }
- */
     }
 
     private void tryThis() {
@@ -547,12 +545,9 @@ public class TimerPagerFragment extends Fragment {
         uiHandler.post(() -> mCallback.onArticleSelected(editId));
     }
 
-
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-
 
     }
 
@@ -560,16 +555,13 @@ public class TimerPagerFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
 
-
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
 
-
     }
-
 
     private String getDate(long time) {
         Calendar cal = Calendar.getInstance(Locale.ENGLISH);

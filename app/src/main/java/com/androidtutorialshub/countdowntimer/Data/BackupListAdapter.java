@@ -6,6 +6,7 @@ import java.util.List;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.view.ContextThemeWrapper;
@@ -35,7 +36,7 @@ public class BackupListAdapter extends RecyclerView.Adapter<BackupListAdapter.Vi
 
     private List<Backup> values;
     public String DEBUG_TAG = "!!BLAD";
-    static final int PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE = 1;
+    private static final int PERMISSION_WRITE_EXT_STORAGE_REQUEST_CODE = 1;
     private String fileToDelete;
     DatabaseHandler db;
     private int rowId, numTimers;
@@ -100,10 +101,10 @@ public class BackupListAdapter extends RecyclerView.Adapter<BackupListAdapter.Vi
         holder.txtHeader.setText(filenameWithoutExtension);
         //holder.txtHeader.setOnClickListener(v -> remove(position));
         holder.txtFooter.setText(backup.getNotes());
-
         holder.contextMenu.setOnClickListener(view -> {
 
             //*************** highlight the clicked row *******************//
+            holder.layout.setBackgroundColor(Color.parseColor("#FFB6B546"));
 
             //creating a popup menu
             Context wrapper = new ContextThemeWrapper(view.getContext(), R.style.MaterialBaseBaseTheme_Light);
@@ -217,7 +218,6 @@ public class BackupListAdapter extends RecyclerView.Adapter<BackupListAdapter.Vi
         db.deleteBackupRow(rowId);
 
     }
-
 
 
 }

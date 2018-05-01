@@ -14,11 +14,15 @@ public class Timer {
     private String image;
     private String status;
     private String type;
+    private int modified;
+    private int timeunits;
+    private String imageshape;
 
     public Timer() {
     }
 
-    public Timer(int key, String title, String desc, String message, int timestamp, String image, String status, String type) {
+    public Timer(int key, String title, String desc, String message, int timestamp, String image, String status, String type,
+                                int modified, int timeunits, String imageshape) {
         this.key = key;
         this.title = title;
         this.desc = desc;
@@ -27,9 +31,13 @@ public class Timer {
         this.image = image;
         this.status = status;
         this.type = type;
+        this.modified = modified;
+        this.timeunits = timeunits;
+        this.imageshape = imageshape;
     }
 
-    public Timer(String title, String desc,  String message, int timestamp, String image, String status, String type) {
+    public Timer(String title, String desc,  String message, int timestamp, String image, String status, String type,
+                            int modified, int timeunits, String imageshape) {
         this.title = title;
         this.desc = desc;
         this.message = message;
@@ -37,6 +45,9 @@ public class Timer {
         this.image = image;
         this.status = status;
         this.type = type;
+        this.modified = modified;
+        this.timeunits = timeunits;
+        this.imageshape = imageshape;
     }
     public String getTitle() {
         return title;
@@ -101,5 +112,30 @@ public class Timer {
     public void setType(String type) {
         this.type = type;
     }
+
+    public int getModified() {
+        return modified;
+    }
+
+    public void setModified(int modified) {
+        this.modified = modified;
+    }
+
+    public int getTimeunits() {
+        return timeunits;
+    }
+
+    public void setTimeunits(int timeunits) {
+        this.timeunits = timeunits;
+    }
+
+    public String getImageshape() {
+        return imageshape;
+    }
+
+    public void setImageshape(String imageshape) {
+        this.imageshape = imageshape;
+    }
+
 
 }

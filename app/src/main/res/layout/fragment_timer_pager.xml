@@ -7,6 +7,21 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:id="@+id/textViewShowDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:text="here is where the date goes"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progressBarCircleDay" />
+
+    <TextView
         android:id="@+id/txtStringDate"
         android:layout_width="wrap_content"
         android:layout_height="25dp"
@@ -233,7 +248,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         fresco:placeholderImage="@mipmap/add_btn"
-        fresco:roundedCornerRadius="10dp" />
+         />
 
     <TextView
         android:id="@+id/textTitle"

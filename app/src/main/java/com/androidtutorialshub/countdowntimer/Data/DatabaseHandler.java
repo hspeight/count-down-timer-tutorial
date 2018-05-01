@@ -40,25 +40,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        /*
-        String CREATE_TIMER_TABLE = "CREATE TABLE " + DBUtil.TABLE_NAME_TIMER + " (" +
-                DBUtil.TIM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                DBUtil.TIM_TITLE + " TEXT, " +
-                DBUtil.TIM_DESC + " TEXT, " +
-                DBUtil.TIM_MESSAGE + " TEXT, " +
-                DBUtil.TIM_STAMP + " INTEGER, " +
-                DBUtil.TIM_IMAGE + " TEXT, " +
-                DBUtil.TIM_STATUS + " TEXT, " +
-                DBUtil.TIM_TYPE + " TEXT" + ");";
-
-        //Log.d(DEBUG_TAG, CREATE_TIMER_TABLE);
-
-        try {
-            db.execSQL(CREATE_TIMER_TABLE);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     @Override
@@ -92,6 +73,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         value.put(DBUtil.TIM_IMAGE, timer.getImage());
         value.put(DBUtil.TIM_STATUS, timer.getStatus());
         value.put(DBUtil.TIM_TYPE, timer.getType());
+        value.put(DBUtil.TIM_MODIFIED, timer.getModified());
+        value.put(DBUtil.TIM_UNITS, timer.getTimeunits());
+        value.put(DBUtil.TIM_SHAPE, timer.getImageshape());
 
         SQLiteDatabase db = this.getWritableDatabase();
         try {
@@ -108,7 +92,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(DBUtil.TABLE_NAME_TIMER, new String[]
                         {DBUtil.TIM_ID, DBUtil.TIM_TITLE, DBUtil.TIM_DESC, DBUtil.TIM_MESSAGE,
-                                DBUtil.TIM_STAMP, DBUtil.TIM_IMAGE, DBUtil.TIM_STATUS, DBUtil.TIM_TYPE},
+                                DBUtil.TIM_STAMP, DBUtil.TIM_IMAGE, DBUtil.TIM_STATUS,
+                                DBUtil.TIM_TYPE, DBUtil.TIM_MODIFIED, DBUtil.TIM_UNITS, DBUtil.TIM_SHAPE},
                 DBUtil.TIM_ID + "=?",
                 new String[]{String.valueOf(id)}, null, null, null, null);
         //Log.d(DEBUG_TAG, "cursor count is " + cursor.getCount());
@@ -122,7 +107,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                     cursor.getInt(4),
                     cursor.getString(5),
                     cursor.getString(6),
-                    cursor.getString(7));
+                    cursor.getString(7),
+                    cursor.getInt(8),
+                    cursor.getInt(9),
+                    cursor.getString(10));
+
         } else {
             return new Timer();
         }
@@ -147,6 +136,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 timer.setImage(cursor.getString(5));
                 timer.setDesc(cursor.getString(6));
                 timer.setDesc(cursor.getString(7));
+                timer.setModified(cursor.getInt(8));
+                timer.setModified(cursor.getInt(9));
+                timer.setDesc(cursor.getString(10));
 
                 timerList.add(timer);
 
@@ -275,6 +267,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         cv.put(DBUtil.TIM_STAMP, timer.getTimestamp());
         cv.put(DBUtil.TIM_STATUS, timer.getStatus());
         cv.put(DBUtil.TIM_TYPE, timer.getType());
+        cv.put(DBUtil.TIM_MODIFIED, timer.getModified());
+        cv.put(DBUtil.TIM_UNITS, timer.getTimeunits());
+        cv.put(DBUtil.TIM_SHAPE, timer.getImageshape());
 
         db.update(DBUtil.TABLE_NAME_TIMER, cv, DBUtil.TIM_ID + "=?",
                         new String[] {String.valueOf(timer.getKey())});
@@ -388,4 +383,3 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
 }
-

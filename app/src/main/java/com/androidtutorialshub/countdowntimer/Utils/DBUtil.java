@@ -7,7 +7,7 @@ package com.androidtutorialshub.countdowntimer.Utils;
 public class DBUtil {
 
     //Database version
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "timer.db";
 
     //Timer table & column names
@@ -20,6 +20,9 @@ public class DBUtil {
     public static final String TIM_IMAGE = "image";
     public static final String TIM_STATUS = "status";
     public static final String TIM_TYPE = "type";
+    public static final String TIM_MODIFIED = "modified";
+    public static final String TIM_UNITS = "timeunits";
+    public static final String TIM_SHAPE = "imageshape";
 
     //Backups table column names
     public static final String TABLE_NAME_BACKUPS = "backups";
@@ -32,7 +35,8 @@ public class DBUtil {
     public static final String CREATE_TABLE_TIMER = "CREATE TABLE "
             + TABLE_NAME_TIMER + "(" + TIM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + TIM_TITLE
             + " TEXT," + TIM_DESC + " TEXT," + TIM_MESSAGE + " TEXT," + TIM_STAMP
-            + " INTEGER," + TIM_IMAGE + " TEXT," + TIM_STATUS + " TEXT," + TIM_TYPE + " TEXT);";
+            + " INTEGER," + TIM_IMAGE + " TEXT," + TIM_STATUS + " TEXT," + TIM_TYPE
+            + " TEXT," + TIM_MODIFIED + " INTEGER," + TIM_UNITS + " INTEGER," + TIM_SHAPE + " TEXT);";
 
     public static final String CREATE_TABLE_BACKUPS = "CREATE TABLE "
             + TABLE_NAME_BACKUPS  + "(" + BCK_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," + BCK_FILENAME

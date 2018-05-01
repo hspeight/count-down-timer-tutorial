@@ -7,4 +7,7 @@
     <item android:id="@+id/timerMenuItemDelete"
         android:title="@string/timer_menu_option_delete"
         />
+    <item android:id="@+id/timerMenuItemSettings"
+        android:title="@string/timer_menu_option_settings"
+        />
 </menu>

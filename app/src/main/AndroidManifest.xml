@@ -28,9 +28,21 @@
             android:name=".HelpActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_help"
-            android:theme="@style/FullscreenTheme"></activity>
-        <activity android:name=".TimerPager"></activity>
-        <activity android:name=".BackupListActivity"></activity>
+            android:theme="@style/FullscreenTheme">
+        </activity>
+
+        <activity android:name=".TimerPager">
+        </activity>
+
+        <activity android:name=".BackupListActivity">
+        </activity>
+
+        <activity
+            android:name=".PrefsActivity"
+            android:theme="@style/AppTheme"
+        >
+        </activity>
+
     </application>
 
 </manifest>
